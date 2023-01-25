@@ -1,3 +1,6 @@
+
+const socket = io();
+
 // 共通する要素のDOMを取得
 const btn = document.getElementById('button');
 const chat = document.getElementById('chat');
@@ -10,44 +13,49 @@ let isMyself = true;
 // 自分が送信する際の処理
 function mySend() {
   if (textarea.value !== "") {
-      // textareaに入力されたテキストを取得
-  let Message = textarea.value;
-  
-  // #chatの子要素になるdiv要素を生成しクラスを付与
-  const MessageBox = document.createElement('div');
-  MessageBox.classList.add('MyMessageBox');
+    // textareaに入力されたテキストを取得
+    let Message = textarea.value;
 
-  // #chat > .MyMessageBoxの子要素になるdivを生成し、クラスを付与
-  const time = document.createElement('div');
-  time.classList.add('time');
+    // #chatの子要素になるdiv要素を生成しクラスを付与
+    const MessageBox = document.createElement('div');
+    MessageBox.classList.add('MyMessageBox');
 
-  // .timeに現在の時間を表示する関数を代入
-  time.textContent = showTime() + " " + "Me";
+    // #chat > .MyMessageBoxの子要素になるdivを生成し、クラスを付与
+    const time = document.createElement('div');
+    time.classList.add('time');
 
-  // #chat > .MyMessageBoxの子要素になるdivを生成
-  const sentMessage = document.createElement('div');
+    // .timeに現在の時間を表示する関数を代入
+    time.textContent = showTime() + " " + "Me";
 
-  // .MyMessageBox > sentMessageの子要素になるpタグを生成し、クラスを付与
-  const myMessage = document.createElement('p');
-  myMessage.classList.add('myMessage');
+    // #chat > .MyMessageBoxの子要素になるdivを生成
+    const sentMessage = document.createElement('div');
 
-  // textareaに入力されたテキストをpタグに格納
-  myMessage.textContent = Message;
+    // .MyMessageBox > sentMessageの子要素になるpタグを生成し、クラスを付与
+    const myMessage = document.createElement('p');
+    myMessage.classList.add('myMessage');
 
-  // 各要素を格納
-  sentMessage.appendChild(myMessage);
-  MessageBox.appendChild(time);
-  MessageBox.appendChild(sentMessage);
-  chat.appendChild(MessageBox);
+    // ページの最下部に画面を固定
+    MessageBox.scrollIntoView(false);
 
-  // 送信ボタンをクリックしたらtextareaを空にする
-  textarea.value = "";
+    socket.emit("myMessage", Message);
 
-  // 交互に送信するために変数を変更
-  isMyself = false;
+    socket.on('myMessage', function(msg){
+      // textareaに入力されたテキストをpタグに格納
+      myMessage.textContent = msg;
 
-  // ページの最下部に画面を固定
-  MessageBox.scrollIntoView(false);
+      // 各要素を格納
+      sentMessage.appendChild(myMessage);
+      MessageBox.appendChild(time);
+      MessageBox.appendChild(sentMessage);
+      chat.appendChild(MessageBox);
+
+      // 送信ボタンをクリックしたらtextareaを空にする
+      textarea.value = "";
+
+      // 交互に送信するために変数を変更
+      isMyself = false;
+    });
+
   }
 }
 
@@ -57,7 +65,7 @@ function otherSend() {
   if (textarea.value !== "") {
       // textareaに入力されたテキストを取得
   let Message = textarea.value;
-  
+
   // #chatの子要素になるdiv要素を生成しクラスを付与
   const MessageBox = document.createElement('div');
   MessageBox.classList.add('OtherMessageBox');
@@ -76,8 +84,14 @@ function otherSend() {
   const otherMessage = document.createElement('p');
   otherMessage.classList.add('otherMessage');
 
+  // ページの最下部に画面を固定
+  MessageBox.scrollIntoView(false);
+
+  socket.emit("otherMessage", Message);
+
+  socket.on('otherMessage', function(msg){
   // textareaに入力されたテキストをpタグに格納
-  otherMessage.textContent = Message;
+  otherMessage.textContent = msg;
 
   // 各要素を格納
   sentMessage.appendChild(otherMessage);
@@ -90,9 +104,7 @@ function otherSend() {
 
   // 交互に送信するために変数を変更
   isMyself = true;
-
-  // ページの最下部に画面を固定
-  MessageBox.scrollIntoView(false);
+  });
   }
 }
 
